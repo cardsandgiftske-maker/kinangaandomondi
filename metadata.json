@@ -1,0 +1,10 @@
+{
+  "name": "Kinanga and Omondi Wedding Invitation",
+  "description": "An elegant champagne gold and white wedding invitation and RSVP portal for Sharon Kinanga Ogari and Collins Omondi Obat on December 4, 2026 at Monarch Gardens, Mosocho, Kisii County.",
+  "requestFramePermissions": [
+    "camera"
+  ],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}
