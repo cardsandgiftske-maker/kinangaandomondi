@@ -2,13 +2,11 @@ import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { Shield, Key, Search, Trash2, RefreshCw, X, Eye, EyeOff, Users, CheckCircle, XCircle, FileSpreadsheet, Utensils } from 'lucide-react';
 import { RsvpGuest } from '../types';
-import { deleteRsvp, updateRsvpStatus, isFirebaseConfigured, getRsvps, loginAdmin, logoutAdmin, getAuthInstance } from '../lib/firebase';
-import { onAuthStateChanged } from 'firebase/auth';
+import { deleteRsvp, updateRsvpStatus, isFirebaseConfigured, getRsvps, loginAdmin, logoutAdmin, checkAdminSession } from '../lib/firebase';
 
 export default function AdminPanel() {
   const [isOpen, setIsOpen] = useState(false);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [email, setEmail] = useState('');
   const [passcode, setPasscode] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [guests, setGuests] = useState<RsvpGuest[]>([]);
@@ -19,15 +17,14 @@ export default function AdminPanel() {
   useEffect(() => {
     const handleOpenAdmin = () => setIsOpen(true);
     window.addEventListener('open_admin_panel', handleOpenAdmin);
-    let unsubscribeAuth = () => {};
-    if (isFirebaseConfigured) {
-      unsubscribeAuth = onAuthStateChanged(getAuthInstance(), user => {
-        setIsAuthenticated(Boolean(user));
-        if (user) getRsvps().then(setGuests).catch(console.error);
-        else setGuests([]);
-      });
-    }
-    return () => { window.removeEventListener('open_admin_panel', handleOpenAdmin); unsubscribeAuth(); };
+    let active = true;
+    checkAdminSession().then(authenticated => {
+      if (!active) return;
+      setIsAuthenticated(authenticated);
+      if (authenticated) getRsvps().then(rows => { if (active) setGuests(rows); }).catch(console.error);
+      else setGuests([]);
+    }).catch(() => { if (active) setIsAuthenticated(false); });
+    return () => { active = false; window.removeEventListener('open_admin_panel', handleOpenAdmin); };
   }, []);
 
   useEffect(() => {
@@ -41,8 +38,8 @@ export default function AdminPanel() {
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault(); setPasscodeError('');
-    try { await loginAdmin(email.trim(), passcode); setIsAuthenticated(true); setPasscode(''); setEmail(''); }
-    catch { setPasscodeError('Sign-in failed. Check your administrator email and password.'); }
+    try { await loginAdmin(passcode); setIsAuthenticated(true); setPasscode(''); }
+    catch { setPasscodeError('Sign-in failed. Check the shared administrator password.'); }
   };
 
   const handleDelete = async (id: string) => {
@@ -197,7 +194,6 @@ export default function AdminPanel() {
                   </div>
 
                   <form onSubmit={handleLogin} className="w-full space-y-4">
-                    <input type="email" required autoComplete="username" placeholder="Administrator email" value={email} onChange={(e) => setEmail(e.target.value)} className="w-full bg-[#FDFBF7] border border-[#D8C39A] focus:border-[#8A6621] rounded-xl px-4 py-3 text-sm text-[#2A2218] outline-none text-center" />
                     <div className="relative">
                       <input
                         type={showPassword ? 'text' : 'password'}
