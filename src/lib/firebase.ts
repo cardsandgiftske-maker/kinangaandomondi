@@ -1,5 +1,4 @@
 import { initializeApp, getApps, getApp } from 'firebase/app';
-import { getAuth, signInWithEmailAndPassword, signOut } from 'firebase/auth';
 import { getFirestore, collection, doc, setDoc, getDocs, deleteDoc, onSnapshot, query, orderBy, updateDoc, increment } from 'firebase/firestore';
 import type { RsvpGuest, GalleryPhoto } from '../types';
 
@@ -11,7 +10,6 @@ const firebaseConfig = {
   messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID,
   appId: import.meta.env.VITE_FIREBASE_APP_ID,
 };
-const databaseId = import.meta.env.VITE_FIREBASE_DATABASE_ID || undefined;
 export const isFirebaseConfigured = Boolean(firebaseConfig.apiKey && firebaseConfig.projectId && firebaseConfig.appId);
 let app: ReturnType<typeof initializeApp> | null = null;
 function getAppInstance() {
@@ -19,15 +17,20 @@ function getAppInstance() {
   if (!app) app = getApps().length ? getApp() : initializeApp(firebaseConfig);
   return app;
 }
-export function getAuthInstance() { return getAuth(getAppInstance()); }
-export function getDb() { const instance = getAppInstance(); return databaseId ? getFirestore(instance, databaseId) : getFirestore(instance); }
-export async function loginAdmin(email: string, password: string) { return signInWithEmailAndPassword(getAuthInstance(), email, password); }
-export async function logoutAdmin() { await signOut(getAuthInstance()); }
+export function getDb() { return getFirestore(getAppInstance()); }
+export async function loginAdmin(password: string) {
+  const response = await fetch('/api/admin/login', { method: 'POST', credentials: 'same-origin', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ password }) });
+  const data = await response.json().catch(() => ({}));
+  if (!response.ok) throw new Error(data.error || 'Sign-in failed.');
+}
+export async function logoutAdmin() { await fetch('/api/admin/logout', { method: 'POST', credentials: 'same-origin' }); }
+export async function checkAdminSession(): Promise<boolean> {
+  const response = await fetch('/api/admin/session', { credentials: 'same-origin', cache: 'no-store' });
+  const data = await response.json().catch(() => ({}));
+  return Boolean(response.ok && data.authenticated);
+}
 async function adminRequest(path: string, init: RequestInit = {}) {
-  const user = getAuthInstance().currentUser;
-  if (!user) throw new Error('Please sign in as an administrator.');
-  const token = await user.getIdToken();
-  const response = await fetch(path, { ...init, headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}`, ...(init.headers || {}) } });
+  const response = await fetch(path, { ...init, credentials: 'same-origin', headers: { 'Content-Type': 'application/json', ...(init.headers || {}) } });
   const data = await response.json().catch(() => ({}));
   if (!response.ok) throw new Error(data.error || 'Request failed.');
   return data;
