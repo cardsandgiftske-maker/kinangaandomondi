@@ -3,6 +3,10 @@ import { motion, AnimatePresence } from 'motion/react';
 import { ChevronLeft, ChevronRight, Maximize2, X, Pause, Play } from 'lucide-react';
 
 import couplePortrait from '../assets/images/sharon_collins_couple_1795259250565.jpg';
+import couple1Img from '../assets/images/couple1.jpg';
+import couple2Img from '../assets/images/couple2.jpg';
+import couple3Img from '../assets/images/couple3.jpg';
+import couple4Img from '../assets/images/couple4.jpg';
 import engagementHandsRingImg from '../assets/images/engagement_hands_ring_1786638744313.jpg';
 import ceremonyVenueImg from '../assets/images/monarch_gardens_ceremony_1795259251766.jpg';
 import receptionVenueImg from '../assets/images/monarch_gardens_reception_1795259251084.jpg';
@@ -17,6 +21,26 @@ const GALLERY_IMAGES: GalleryItem[] = [
   {
     url: couplePortrait,
     caption: 'Sharon Kinanga Ogari & Collins Omondi Obat — Celebrating Love',
+    category: 'The Couple',
+  },
+  {
+    url: couple1Img,
+    caption: 'Sharon & Collins — Cherished Moments Together',
+    category: 'The Couple',
+  },
+  {
+    url: couple2Img,
+    caption: 'Two Hearts, One Journey',
+    category: 'The Couple',
+  },
+  {
+    url: couple3Img,
+    caption: 'Laughter, Love & Forever',
+    category: 'The Couple',
+  },
+  {
+    url: couple4Img,
+    caption: 'Counting Down to Our Forever',
     category: 'The Couple',
   },
   {
